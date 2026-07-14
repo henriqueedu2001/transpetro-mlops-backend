@@ -25,6 +25,7 @@ def main():
                     create_train_table(cursor)
                     create_params_table(cursor)
                     create_files_table(cursor)
+                    create_jobs_table(cursor)
                 except Exception as error:
                     log_message(f'Error: {error}')
                     conn.rollback()
@@ -40,7 +41,7 @@ def main():
 
 
 def create_train_table(cursor: MySQLCursor):
-    create_auth_table_query = """
+    create_train_table_query = """
         CREATE TABLE IF NOT EXISTS train (
             id INT AUTO_INCREMENT PRIMARY KEY,
             train_name VARCHAR(255),
@@ -49,12 +50,12 @@ def create_train_table(cursor: MySQLCursor):
             created_at TIMESTAMP
         );
     """
-    create_table('train', query=create_auth_table_query, cursor=cursor)
+    create_table('train', query=create_train_table_query, cursor=cursor)
     return
 
 
 def create_params_table(cursor: MySQLCursor):
-    create_user_table_query = """
+    create_params_table_query = """
         CREATE TABLE IF NOT EXISTS params (
             id INT AUTO_INCREMENT PRIMARY KEY,
             epochs INT,
@@ -63,12 +64,12 @@ def create_params_table(cursor: MySQLCursor):
             FOREIGN KEY (id) REFERENCES train(id)
         );
     """
-    create_table('params', query=create_user_table_query, cursor=cursor)
+    create_table('params', query=create_params_table_query, cursor=cursor)
     return
 
 
 def create_files_table(cursor: MySQLCursor):
-    create_institution_table_query = """
+    create_files_table_query = """
         CREATE TABLE IF NOT EXISTS files (
             id INT AUTO_INCREMENT PRIMARY KEY,
             train_id INT,
@@ -77,8 +78,22 @@ def create_files_table(cursor: MySQLCursor):
             FOREIGN KEY (train_id) REFERENCES train(id)
         );
     """
-    create_table('files', query=create_institution_table_query, cursor=cursor)
+    create_table('files', query=create_files_table_query, cursor=cursor)
     return
+
+def create_jobs_table(cursor: MySQLCursor):
+        create_jobs_table_query = """
+        CREATE TABLE IF NOT EXISTS jobs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            train_id INT,
+            status ENUM('created', 'processing', 'finished', 'cancelled'),
+            created_at TIMESTAMP,
+            scheduled_at TIMESTAMP,
+            finished_at TIMESTAMP,
+            FOREIGN KEY (train_id) REFERENCES train(id)
+        );
+    """
+        create_table('jobs', query=create_jobs_table_query, cursor=cursor)
 
 
 def create_table(table_name: str, query: str, cursor: MySQLCursor):
