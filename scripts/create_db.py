@@ -41,8 +41,8 @@ def main():
 
 def create_train_table(cursor: MySQLCursor):
     create_auth_table_query = """
-        CREATE TABLE Train (
-            id INT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS train (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             train_name VARCHAR(255),
             project_name VARCHAR(255),
             project_owner VARCHAR(255),
@@ -55,12 +55,12 @@ def create_train_table(cursor: MySQLCursor):
 
 def create_params_table(cursor: MySQLCursor):
     create_user_table_query = """
-        CREATE TABLE params (
-            id INT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS params (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             epochs INT,
             batch INT,
             workers INT,
-            FOREIGN KEY (id) REFERENCES Train(id)
+            FOREIGN KEY (id) REFERENCES train(id)
         );
     """
     create_table('params', query=create_user_table_query, cursor=cursor)
@@ -69,12 +69,12 @@ def create_params_table(cursor: MySQLCursor):
 
 def create_files_table(cursor: MySQLCursor):
     create_institution_table_query = """
-        CREATE TABLE files (
-            id INT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS files (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             train_id INT,
             file_type VARCHAR(255),
             file_path VARCHAR(255),
-            FOREIGN KEY (train_id) REFERENCES Train(id)
+            FOREIGN KEY (train_id) REFERENCES train(id)
         );
     """
     create_table('files', query=create_institution_table_query, cursor=cursor)
