@@ -1,0 +1,21 @@
+Table Train {
+  id int [primary key]
+  train_name varchar(255)
+  project_name varchar(255)
+  project_owner varchar(255)
+  created_at timestamp
+}
+
+Table params {
+  id int [ref: - Train.id]
+  epochs int
+  batch int
+  workers int
+}
+
+Table files {
+  id int [primary key]
+  train_id int [ref: - Train.id]
+  file_type varchar(255)
+  file_path varchar(255)
+}
