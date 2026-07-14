@@ -1,3 +1,10 @@
+enum order_status {
+  created
+  processing
+  finished
+  cancelled
+}
+
 Table Train {
   id int [primary key]
   train_name varchar(255)
@@ -18,4 +25,13 @@ Table files {
   train_id int [ref: - Train.id]
   file_type varchar(255)
   file_path varchar(255)
+}
+
+Table jobs {
+  id int [primary key]
+  train_id int [ref: - Train.id]
+  status order_status
+  created_at timestamp
+  scheduled_at timestamp
+  finished_at timestamp
 }
