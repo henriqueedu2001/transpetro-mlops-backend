@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.routes import health_check, training
+from app.api.routes import health_check, training, jobs
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -17,3 +17,4 @@ app.add_middleware(
 
 app.include_router(health_check.router)
 app.include_router(training.router)
+app.include_router(jobs.router)

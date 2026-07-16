@@ -5,7 +5,7 @@ enum order_status {
   cancelled
 }
 
-Table Train {
+Table train {
   id int [primary key]
   train_name varchar(255)
   project_name varchar(255)
@@ -14,7 +14,7 @@ Table Train {
 }
 
 Table params {
-  id int [ref: - Train.id]
+  id int [ref: - train.id]
   epochs int
   batch int
   workers int
@@ -22,14 +22,14 @@ Table params {
 
 Table files {
   id int [primary key]
-  train_id int [ref: - Train.id]
+  train_id int [ref: - train.id]
   file_type varchar(255)
   file_path varchar(255)
 }
 
 Table jobs {
   id int [primary key]
-  train_id int [ref: - Train.id]
+  train_id int [ref: - train.id]
   status order_status
   created_at timestamp
   scheduled_at timestamp
