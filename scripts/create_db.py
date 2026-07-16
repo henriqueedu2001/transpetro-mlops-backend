@@ -87,7 +87,7 @@ def create_jobs_table(cursor: MySQLCursor):
             id INT AUTO_INCREMENT PRIMARY KEY,
             train_id INT,
             status ENUM('created', 'processing', 'finished', 'cancelled'),
-            created_at TIMESTAMP,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             scheduled_at TIMESTAMP,
             finished_at TIMESTAMP,
             FOREIGN KEY (train_id) REFERENCES train(id)
