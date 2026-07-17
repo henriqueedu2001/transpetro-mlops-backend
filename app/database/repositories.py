@@ -55,3 +55,10 @@ class Repository:
         return train_id, dataset_path
     
 
+    def get_jobs(self) -> List[Dict]:
+        query = 'SELECT * FROM jobs'
+        self.db.execute(query)
+        jobs = self.db.fetch_all()
+        return jobs
+    
+
