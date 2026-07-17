@@ -18,7 +18,7 @@ class Repository:
             epochs: int,
             batch: int,
             workers: int
-    ):
+    ) -> Tuple[int, Path]:
         # creates the training
         print(f'>>> train: {train_name}, {project_name}, {project_owner}')
         query = 'INSERT INTO train(train_name, project_name, project_owner) VALUES(%s, %s, %s)'
@@ -46,9 +46,9 @@ class Repository:
 
         # creates the file
         file_type = 'dataset_zip'
-        dataset_path = str(get_dataset_path(file, train_id, project_name))
+        dataset_path = get_dataset_path(file, train_id, project_name)
         query = 'INSERT INTO files(train_id, file_type, file_path) VALUES(%s, %s, %s)'
-        self.db.execute(query, (train_id, file_type, dataset_path))
+        self.db.execute(query, (train_id, file_type, str(dataset_path)))
 
         self.db.commit()
 

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from app.database.database_manager import *
 from app.database.repositories import *
 from app.modules.file_handler import *
+from app.modules.unzip import *
 
 router = APIRouter()
 
@@ -33,6 +34,11 @@ async def create_training(
 
     # saving the dataset .zip
     await save_dataset(file=file, train_id=train_id, project_name=project_name)
+
+    # unzips it
+    dataset_dir = dataset_path.parent
+    print(f'zip_path: {dataset_path}\ndestination: {dataset_dir}')
+    unzip(zip_path=dataset_path, destination=dataset_dir)
     
     return {'train_id': train_id, 'dataset_path': dataset_path}
 
