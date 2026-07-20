@@ -44,10 +44,10 @@ def create_train_table(cursor: MySQLCursor):
     create_train_table_query = """
         CREATE TABLE IF NOT EXISTS train (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            train_name VARCHAR(255),
-            project_name VARCHAR(255),
-            project_owner VARCHAR(255),
-            created_at TIMESTAMP
+            train_name VARCHAR(255) NOT NULL,
+            project_name VARCHAR(255) NOT NULL,
+            project_owner VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
     """
     create_table('train', query=create_train_table_query, cursor=cursor)

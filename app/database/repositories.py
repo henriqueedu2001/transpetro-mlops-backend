@@ -35,7 +35,7 @@ class Repository:
         # creates the job
         status = 'created'
         print(f'>>> job: {train_id}, {status}')
-        query = 'INSERT INTO jobs(id, status) VALUES(%s, %s)'
+        query = 'INSERT INTO jobs(train_id, status) VALUES(%s, %s)'
         self.db.execute(query, (train_id, status))
 
         # create the folder

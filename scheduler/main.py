@@ -1,10 +1,15 @@
 from time import *
 from datetime import datetime
-from database.pool import x
+from jobs.job import Job
+from jobs.job_status import Status
+from database.database_manager import *
+from database.repositories import *
 
 class Scheduler:
     def __init__(self):
         self.running = False
+        self.db = Database()
+        self.repository = Repository(self.db)
         pass
 
     
@@ -17,8 +22,7 @@ class Scheduler:
             log_message(f'{len(jobs)} found.')
 
             for job in jobs:
-                job_id = job['id']
-                log_message(f'Executing job: {job_id}')
+                log_message(f'Executing job: {job}')
                 self.execute_job(job)
                 sleep(1)
             log_message('All jobs finished!')
@@ -27,16 +31,26 @@ class Scheduler:
 
     def retrieve_active_jobs(self):
         sleep(1)
-        jobs = [
-            {'id': '1', 'name': 'job_a'},
-            {'id': '2', 'name': 'job_b'},
-            {'id': '3', 'name': 'job_c'},
-        ]
+        jobs = self.repository.get_active_jobs()
+        jobs = [self._cast_job(job) for job in jobs] 
+        
         return jobs
     
 
-    def execute_job(self, job):
+    def execute_job(self, job: Job):
         return
+    
+
+    def _cast_job(self, job: Dict) -> Job:
+        return Job(
+            id=job.get('id'),
+            train_id=job.get('train_id'),
+            status=job.get('status'),
+            created_at=job.get('created_at'),
+            scheduled_at=job.get('scheduled_at'),
+            finished_at=job.get('finished_at'),
+            dataset_dir=job.get('file_path')
+        )
 
 
 def log_message(message: str):

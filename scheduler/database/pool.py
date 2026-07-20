@@ -1,10 +1,10 @@
 from mysql.connector.pooling import MySQLConnectionPool
-from app.services.env import get_env_variables
+from services.env import get_env_variables
 
 env_vars = get_env_variables()
 
 POOL = MySQLConnectionPool(
-    pool_name='REST_API_MYSQL_POOL',
+    pool_name='SCHEDULER_MYSQL_POOL',
     pool_size=16,
     pool_reset_session=True,
 
