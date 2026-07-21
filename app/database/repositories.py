@@ -39,14 +39,21 @@ class Repository:
         self.db.execute(query, (train_id, status))
 
         # create the folder
-        file_type = 'dataset_dir'
+        file_type = 'train_dir'
         dataset_dir = str(get_dataset_dir(train_id, project_name))
         query = 'INSERT INTO files(train_id, file_type, file_path) VALUES(%s, %s, %s)'
         self.db.execute(query, (train_id, file_type, dataset_dir))
 
         # creates the file
+        file_type = 'dataset_dir'
+        dataset_path = get_dataset_zip_path(file, train_id, project_name)
+        dataset_path = Path(dataset_path).with_suffix('')
+        query = 'INSERT INTO files(train_id, file_type, file_path) VALUES(%s, %s, %s)'
+        self.db.execute(query, (train_id, file_type, str(dataset_path)))
+
+        # creates the file
         file_type = 'dataset_zip'
-        dataset_path = get_dataset_path(file, train_id, project_name)
+        dataset_path = get_dataset_zip_path(file, train_id, project_name)
         query = 'INSERT INTO files(train_id, file_type, file_path) VALUES(%s, %s, %s)'
         self.db.execute(query, (train_id, file_type, str(dataset_path)))
 
@@ -56,11 +63,14 @@ class Repository:
     
 
     def get_jobs(self) -> List[Dict]:
-        query = 'SELECT * FROM jobs'
+        query = """
+            SELECT train_id, status, jobs.created_at, scheduled_at, finished_at, train_name, project_name, project_owner
+            FROM jobs
+            INNER JOIN train ON jobs.train_id = train.id
+        """
         self.db.execute(query)
         jobs = self.db.fetch_all()
         return jobs
-    
 
 
     def start_job(self, job_id: int):
