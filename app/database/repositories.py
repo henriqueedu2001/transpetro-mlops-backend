@@ -62,3 +62,30 @@ class Repository:
         return jobs
     
 
+
+    def start_job(self, job_id: int):
+        query = """
+            UPDATE jobs
+            SET status='processing', scheduled_at=NOW()
+            WHERE train_id = %s;
+        """
+
+        self.db.execute(query, (job_id,))
+
+        self.db.commit()
+        return
+    
+
+    def finish_job(self, job_id: int):
+        query = """
+            UPDATE jobs
+            SET status='finished', finished_at=NOW()
+            WHERE train_id = %s;
+        """
+
+        self.db.execute(query, (job_id,))
+
+        self.db.commit()
+        return
+    
+
