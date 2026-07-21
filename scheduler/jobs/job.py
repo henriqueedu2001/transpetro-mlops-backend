@@ -40,5 +40,5 @@ class Job:
         job_str += f'\tepochs: {self.epochs}\n'
         job_str += f'\tbatch: {self.batch}\n'
         job_str += f'\tworkers: {self.workers}\n'
-        job_str += f'\tdataset_dir: {self.dataset_dir}\n'
+        job_str += f'\tdataset_dir: {self.dataset_dir}'
         return job_str
