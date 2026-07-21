@@ -19,10 +19,10 @@ class Scheduler:
         while self.running:
             log_message('Retrieving active jobs...')
             jobs = self.retrieve_active_jobs()
-            log_message(f'{len(jobs)} found.')
+            log_message(f'{len(jobs)} jobs found.')
 
             for job in jobs:
-                log_message(f'Executing job: {job}')
+                log_message(f'Executing the job:\n{job}')
                 self.execute_job(job)
                 sleep(1)
             log_message('All jobs finished!')
@@ -43,13 +43,16 @@ class Scheduler:
 
     def _cast_job(self, job: Dict) -> Job:
         return Job(
-            id=job.get('id'),
+            job_id=job.get('id'),
             train_id=job.get('train_id'),
             status=job.get('status'),
             created_at=job.get('created_at'),
             scheduled_at=job.get('scheduled_at'),
             finished_at=job.get('finished_at'),
-            dataset_dir=job.get('file_path')
+            dataset_dir=job.get('file_path'),
+            epochs=job.get('epochs'),
+            batch=job.get('batch'),
+            workers=job.get('workers')
         )
 
 

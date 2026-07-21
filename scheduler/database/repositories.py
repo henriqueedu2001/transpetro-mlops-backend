@@ -11,10 +11,10 @@ class Repository:
     def get_active_jobs(self) -> List[Dict]:
         query = """
             SELECT * FROM jobs
-            INNER JOIN files 
-                ON jobs.train_id  = files.train_id  
-            WHERE file_type = 'dataset_dir' AND status = 'created'
-            ORDER BY created_at
+            INNER JOIN files ON jobs.train_id = files.train_id
+            INNER JOIN params ON jobs.train_id = params.id
+            WHERE files.file_type = 'dataset_dir' AND jobs.status = 'created'
+            ORDER BY jobs.created_at;
         """
         self.db.execute(query)
         jobs = self.db.fetch_all()
