@@ -3,7 +3,7 @@ from pathlib import Path
 
 FILES_PATH = Path('files')
 
-def get_dataset_path(file, train_id, project_name: str) -> Path:
+def get_dataset_zip_path(file, train_id, project_name: str) -> Path:
     directory_name = f'train_{train_id}_{project_name}'
     dataset_path = FILES_PATH / directory_name / file.filename
     return dataset_path
@@ -16,7 +16,7 @@ def get_dataset_dir(train_id, project_name: str) -> Path:
 
 
 async def save_dataset(file: bytes, train_id: str, project_name: str) -> Path:
-    dataset_path = get_dataset_path(file, train_id, project_name)
+    dataset_path = get_dataset_zip_path(file, train_id, project_name)
     directory_path = get_dataset_dir(train_id, project_name)
 
     # create the train folder
