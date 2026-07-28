@@ -100,7 +100,7 @@ class Repository:
 
 
     def get_dataset_dir(self, train_id: int) -> str:
-        query = 'SELECT file_path FROM files WHERE file_type = \'dataset_dir\' AND id = %s'
+        query = 'SELECT file_path FROM files WHERE file_type = \'dataset_dir\' AND train_id = %s'
         self.db.execute(query, (train_id,))
         dataset_dir = self.db.fetch_one()
         dataset_dir = dataset_dir.get('file_path')
