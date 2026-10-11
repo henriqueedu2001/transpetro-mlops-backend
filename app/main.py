@@ -1,8 +1,15 @@
 from fastapi import FastAPI
-from app.api.routes import downloads, health_check, training, jobs, downloads
+from app.api.routes import downloads, health_check, training, jobs
 from fastapi.middleware.cors import CORSMiddleware
+from app.services.logging_config import configure_logging
 
-app = FastAPI()
+configure_logging()
+
+app = FastAPI(
+    title="Transpetro MLOps API",
+    version="1.0.0",
+    description="API da primeira release da plataforma de treinamentos YOLO.",
+)
 
 app.add_middleware(
     CORSMiddleware,

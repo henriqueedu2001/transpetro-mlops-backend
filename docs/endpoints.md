@@ -1,10 +1,45 @@
-### 2. Descrição dos Endpoints Propostos (Backend - FastAPI)
+# Contrato HTTP — Release 1
 
-| Método | Endpoint | Descrição |
-| :--- | :--- | :--- |
-| **POST** | `/trainings/` | Recebe os dados do formulário (multipart/form-data): `train_name`, `project_name`, `project_owner`, `epochs`, `batch`, `workers` e o arquivo do dataset (`file`). Cria os registros nas tabelas `train`, `params` e `jobs` (status `created`), retornando o `train_id` e `job_id` gerados. |
-| **GET** | `/jobs/` | Lista todos os jobs com seus respectivos status e parâmetros. Retorna um *array* de objetos contendo: `id`, `train_id`, `status`, `created_at`, `scheduled_at`, `finished_at`, `train_name`, `project_name`, `project_owner`, `epochs`, `batch`, `workers`. (Idealmente realiza um `JOIN` entre as tabelas). |
-| **GET** | `/trainings/{train_id}/download/zip` | Faz o download do pacote completo de saída do treinamento (`.zip`) para o `train_id` informado. Retorna o arquivo com `Content-Disposition: attachment`. |
-| **GET** | `/trainings/{train_id}/download/model` | Faz o download apenas do modelo treinado (`.pt`) para o `train_id` informado. Retorna o arquivo binário. |
-| **GET** | `/trainings/{train_id}/metrics` | Retorna um JSON com os parâmetros utilizados no treinamento: `{ "epochs": 100, "batch": 16, "workers": 8 }`. | 
-| *(Opcional)* **GET** | `/trainings/{train_id}/status` | Retorna o status atual do job para um `train_id` específico. (Não é estritamente necessário, pois a lista `/jobs/` já contém todos). |
+## Catálogo e criação
+
+| Método | Endpoint | Resultado |
+| --- | --- | --- |
+| `GET` | `/models` | Famílias YOLO e tamanhos aceitos pela plataforma. |
+| `POST` | `/trainings/` | Valida a configuração, recebe dataset/args.yaml e cria o treinamento com estado `queued`. |
+
+`POST /trainings/` usa `multipart/form-data`. Os campos de texto obrigatórios são `train_name`, `project_name` e `project_owner`; `file` deve ser um ZIP. O arquivo `args_yaml` é opcional. Os demais campos e seus padrões estão disponíveis no Swagger em `/docs`.
+
+Resposta de criação (`201`):
+
+```json
+{
+  "train_id": 42,
+  "status": "queued",
+  "model": "yolo11s.pt",
+  "configuration": {
+    "model_version": "yolo11",
+    "model_size": "s",
+    "arguments": { "epochs": 100, "batch": 16 }
+  }
+}
+```
+
+## Jobs
+
+| Método | Endpoint | Resultado |
+| --- | --- | --- |
+| `GET` | `/jobs/` | Lista os jobs, parâmetros principais, estado, datas, erro e número da tentativa. |
+| `POST` | `/jobs/{job_id}/cancel` | Cancela um job na fila ou solicita a interrupção de um job em execução. |
+| `POST` | `/jobs/{job_id}/restart` | Recoloca um job terminal na fila e incrementa a tentativa. |
+| `GET` | `/jobs/{job_id}/logs` | Retorna a saída textual acumulada do treinador. |
+
+O controle retorna `404` para job inexistente e `409` quando a transição não é válida para o estado atual.
+
+## Artefatos
+
+| Método | Endpoint | Resultado |
+| --- | --- | --- |
+| `GET` | `/downloads/model?train_id={id}` | Modelo `best.pt` do treinamento concluído. |
+| `GET` | `/downloads/zip?train_id={id}` | ZIP com configuração, logs e artefatos do treinamento. |
+
+Arquivos ainda indisponíveis retornam `404`.

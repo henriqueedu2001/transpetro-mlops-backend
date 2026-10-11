@@ -61,6 +61,9 @@ def create_params_table(cursor: MySQLCursor):
             epochs INT,
             batch INT,
             workers INT,
+            model_version VARCHAR(32) NOT NULL DEFAULT 'yolov8',
+            model_size VARCHAR(8) NOT NULL DEFAULT 'n',
+            config_json JSON,
             FOREIGN KEY (id) REFERENCES train(id)
         );
     """
@@ -86,10 +89,14 @@ def create_jobs_table(cursor: MySQLCursor):
         CREATE TABLE IF NOT EXISTS jobs (
             id INT AUTO_INCREMENT PRIMARY KEY,
             train_id INT,
-            status ENUM('created', 'processing', 'finished', 'cancelled'),
+            status ENUM('queued', 'running', 'succeeded', 'failed', 'cancelled') NOT NULL DEFAULT 'queued',
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             scheduled_at TIMESTAMP,
             finished_at TIMESTAMP,
+            cancel_requested BOOLEAN NOT NULL DEFAULT FALSE,
+            error_message TEXT,
+            log_path VARCHAR(1024),
+            retry_count INT NOT NULL DEFAULT 0,
             FOREIGN KEY (train_id) REFERENCES train(id)
         );
     """

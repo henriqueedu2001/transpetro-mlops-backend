@@ -1,7 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
-class Status(Enum):
-    CREATED = 'created'
-    PROCESSING = 'processing'
-    FINISHED = 'finished'
-    CANCELLED = 'cancelled'
+
+class Status(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"

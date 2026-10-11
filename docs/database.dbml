@@ -1,7 +1,8 @@
 enum order_status {
-  created
-  processing
-  finished
+  queued
+  running
+  succeeded
+  failed
   cancelled
 }
 
@@ -18,6 +19,9 @@ Table params {
   epochs int
   batch int
   workers int
+  model_version varchar(32)
+  model_size varchar(8)
+  config_json json
 }
 
 Table files {
@@ -34,4 +38,8 @@ Table jobs {
   created_at timestamp
   scheduled_at timestamp
   finished_at timestamp
+  cancel_requested boolean
+  error_message text
+  log_path varchar(1024)
+  retry_count int
 }

@@ -1,117 +1,77 @@
 import argparse
+import json
 from pathlib import Path
+
 import yaml
 from ultralytics import YOLO
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='The Transpetro ML Ops Tool.'
-    )
 
-    parser.add_argument(
-        'dataset_dir',
-        help='The directory of the dataset.'
-    )
+def find_data_yaml(dataset_dir: Path) -> Path | None:
+    candidates = sorted(dataset_dir.rglob("data.yaml")) + sorted(dataset_dir.rglob("data.yml"))
+    return candidates[0] if candidates else None
 
-    parser.add_argument(
-        '--epochs',
-        default=1,
-        type=int,
-        help='The hyperparameter number of epochs.'
-    )
 
-    parser.add_argument(
-        '--batch',
-        default=16,
-        type=int,
-        help='The hyperparameter batch size.'
-    )
+def find_split(dataset_dir: Path, split: str) -> Path | None:
+    candidates = [path for path in dataset_dir.rglob("images") if path.parent.name == split]
+    return candidates[0] if candidates else None
 
-    parser.add_argument(
-        '--workers',
-        default=8,
-        type=int,
-        help='The training parameter number of workers'
-    )
 
+def create_fallback_data_yaml(dataset_dir: Path, output_dir: Path) -> Path:
+    train = find_split(dataset_dir, "train")
+    val = find_split(dataset_dir, "val") or find_split(dataset_dir, "valid")
+    if not train or not val:
+        raise ValueError("dataset sem data.yaml e sem diretórios train/images e val/images")
+    test = find_split(dataset_dir, "test")
+    data = {
+        "train": str(train),
+        "val": str(val),
+        "nc": 5,
+        "names": ["Car", "Person", "Motorcycle", "Truck", "Animal"],
+    }
+    if test:
+        data["test"] = str(test)
+    path = output_dir / "data.yaml"
+    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    return path
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Transpetro MLOps YOLO trainer")
+    parser.add_argument("dataset_dir", help="Diretório extraído do dataset")
+    parser.add_argument("--config", required=True, help="Configuração efetiva em JSON")
     args = parser.parse_args()
 
-    # solves the paths
     dataset_dir = Path(args.dataset_dir).resolve()
+    config_path = Path(args.config).resolve()
+    if not dataset_dir.is_dir():
+        raise FileNotFoundError(f"diretório do dataset não encontrado: {dataset_dir}")
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    training_args = dict(config["arguments"])
+    model_checkpoint = training_args.pop("model")
+    # Release 1 originally persisted "Auto" while Ultralytics expects the
+    # special automatic optimizer value in lowercase. Keep old jobs runnable.
+    if str(training_args.get("optimizer", "")).lower() == "auto":
+        training_args["optimizer"] = "auto"
+
     output_dir = dataset_dir.parent
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    epochs = args.epochs
-    batch = args.batch
-    workers = args.workers
-
-    # default/fixed parameters
-    yolo_model = 'yolov8n.pt'
-    imgsz = 640
-    device = 'cuda'
-    nc = 5
-    names = ['Car', 'Person', 'Motorcycle', 'Truck', 'Animal']
-    exist_ok = True
-
-    print('JOB DESCRIPTION')
-    print(f'\t- dataset_dir: {dataset_dir}')
-    print(f'\t- output_dir: {output_dir}')
-    print(f'\t- epochs: {epochs}')
-    print(f'\t- batch: {batch}')
-    print(f'\t- workers: {workers}')
-
-    # creates a data.yaml file
-    data_dict = {
-        'train': str(dataset_dir / 'train' / 'images'),
-        'val':   str(dataset_dir / 'val' / 'images'),
-        'test':  str(dataset_dir / 'test' / 'images'),  # opcional
-        'nc':    nc,
-        'names': names
+    data_yaml = find_data_yaml(dataset_dir) or create_fallback_data_yaml(dataset_dir, output_dir)
+    controlled_args = {
+        "data": str(data_yaml),
+        "project": str(output_dir.parent),
+        "name": output_dir.name,
+        "exist_ok": True,
+        "verbose": True,
     }
 
-    # writes the data.yaml file
-    yaml_path = output_dir / 'data.yaml'
-    with open(yaml_path, 'w') as f:
-        yaml.safe_dump(data_dict, f, default_flow_style=False)
+    print("event=training_configuration")
+    print(f"model={model_checkpoint}")
+    print(f"dataset={data_yaml}")
+    print(f"output={output_dir}")
+    print(json.dumps(training_args, ensure_ascii=False, sort_keys=True))
+    model = YOLO(model_checkpoint)
+    model.train(**training_args, **controlled_args)
+    print("event=training_finished")
 
-    print('TRAINING PARAMETERS')
-    print(f'\t- Dataset YAML: {yaml_path}')
-    print(f'\t- Output: {output_dir}')
-    print(f'\t- Model: {yolo_model}')
-    print(f'\t- Epochs: {epochs}')
-    print(f'\t- Batch: {batch}')
-    print(f'\t- Image size: {imgsz}')
-    print(f'\t- Workers: {workers}')
-    print(f'\t- Device: {device}')
-    print(f'\t- Classes: {nc}')
-    print(f'\t- Names: {names}')
 
-    # solving paths for the training
-    project_parent = output_dir.parent
-    project_name = output_dir.name
-    if not project_name:
-        project_name = "output"
-
-    # training the model
-    print(f'TRAINING EXECUTION')
-
-    print('\t- Setting up the YOLO model...')
-    model = YOLO(yolo_model)
-    print('\t- Training...')
-
-    results = model.train(
-        data=str(yaml_path),
-        epochs=epochs,
-        batch=batch,
-        imgsz=imgsz,
-        workers=workers,
-        device=device,
-        project=str(project_parent),
-        name=project_name,
-        exist_ok=exist_ok,
-        verbose=True
-    )
-    print(f'Finished!')
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
